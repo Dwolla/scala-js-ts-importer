@@ -77,6 +77,8 @@ object Trees {
 
   // Declarations
 
+  case class ModuleRef(name: Ident, ref: Ident) extends DeclTree
+
   case class ModuleDecl(name: PropertyName, members: List[DeclTree]) extends DeclTree
 
   case class VarDecl(name: Ident, tpe: Option[TypeTree]) extends DeclTree

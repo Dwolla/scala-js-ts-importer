@@ -86,7 +86,11 @@ class TSDefParser extends StdTokenParsers with ImplicitConversions {
     | ambientConstDecl | ambientLetDecl | typeAliasDecl
     | importDecl
     | topLevelExportDecl
+    | eximDecl
   )
+
+  lazy val eximDecl: Parser[DeclTree] =
+    ("export" ~> "import" ~> identifier <~ "=") ~ identifier <~ opt(";") ^^ ModuleRef
 
   lazy val ambientVarDecl: Parser[DeclTree] =
     "var" ~> identifier ~ optTypeAnnotation <~ opt(";") ^^ VarDecl

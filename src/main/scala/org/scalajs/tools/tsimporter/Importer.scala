@@ -5,7 +5,8 @@
 
 package org.scalajs.tools.tsimporter
 
-import Trees.{ TypeRef => TypeRefTree, _ }
+import Trees.{TypeRef ⇒ TypeRefTree, _}
+import org.scalajs.tools.tsimporter.sc.TypeRef.Singleton
 import sc._
 
 /** The meat and potatoes: the importer
@@ -25,12 +26,22 @@ class Importer(val output: java.io.PrintWriter) {
     new Printer(output, outputPackage).printSymbol(rootPackage)
   }
 
+  private def processModuleRef(owner: ContainerSymbol, exportedName: Name, importedName: Name): Unit = {
+    val x = owner.newField(exportedName, Set(Modifier.ReadOnly, Modifier.Const))
+    x.tpe = Singleton(importedName)
+
+    if (!owner.members.contains(x)) owner.members += x
+  }
+
   private def processDecl(owner: ContainerSymbol, declaration: DeclTree) {
     declaration match {
+
+      case ModuleRef(IdentName(exported), IdentName(imported)) ⇒ processModuleRef(owner, exported, imported)
+
       case ModuleDecl(PropertyNameName(name), innerDecls) =>
         assert(owner.isInstanceOf[PackageSymbol],
             s"Found package $name in non-package $owner")
-        val sym = owner.asInstanceOf[PackageSymbol].getPackageOrCreate(name)
+        val sym = owner.asInstanceOf[PackageSymbol].getModuleOrCreate(name)
 
         for (innerDecl <- innerDecls)
           processDecl(sym, innerDecl)
